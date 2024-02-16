@@ -1,0 +1,47 @@
+.chart-container {
+  height: calc(100vh - 65px);
+  position: relative;
+  background: #1e1f22;
+  svg {
+    z-index: 2 !important;
+    line {
+      // stroke: #6f7074;
+      stroke-width: 1;
+    }
+    line[stroke="green"],
+    rect[stroke="green"] {
+      stroke: rgb(6, 240, 6);
+    }
+    line[stroke="red"],
+    rect[stroke="red"] {
+      stroke: rgb(252, 73, 73);
+    }
+    text {
+      font-size: 14px;
+    }
+  }
+}
+#loading-dialog-container {
+  background: transparent;
+  [role="dialog"] {
+    background: transparent;
+    box-shadow: none;
+    .win {
+      text-align: center;
+      .title {
+        color: #fff;
+        font-weight: bold;
+        font-size: 30px;
+        margin: 0;
+      }
+      img {
+        width: 150px;
+      }
+    }
+  }
+}
+@media only screen and (max-width: 820px) {
+  .chart-container {
+    height: calc(100vh - 65px - 150px);
+  }
+}

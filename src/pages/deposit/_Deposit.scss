@@ -1,0 +1,63 @@
+.deposit-page {
+  padding: 50px 0;
+  .deposit-form {
+    padding: 20px 0;
+    max-width: 500px;
+  }
+  .form-input {
+    border-radius: 8px;
+    border: 1px solid #F0F0F0;
+    background: #F1F1F1;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    input {
+      border: none;
+      background-color: transparent;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      outline: none;
+    }
+    span {
+      color: #777;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      img {
+        width: 28px;
+        margin-right: 4px;
+      }
+    }
+  }
+  .form-actions {
+    padding: 12px 0;
+    .wallet-balance {
+      display: flex;
+      align-items: center;
+      justify-content: end;
+      margin-bottom: 12px;
+    }
+    .max {
+      border-radius: 20px;
+      float: right;
+      padding: 4px 12px;
+      margin-right: 8px;
+      border: 1px solid #333;
+    }
+  }
+  .btn {
+    min-width: 200px;
+    width: 100%;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: unset;
+    height: 48px;
+  }
+}
+
+.dialog-transaction_body {
+  padding: 20px;
+  
+}

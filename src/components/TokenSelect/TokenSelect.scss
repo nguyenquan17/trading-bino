@@ -1,0 +1,11 @@
+.token-select {
+  font-size: 14px;
+}
+
+.token-select-button {
+  &.MuiButton-root {
+    border-radius: 8px;
+    border: unset;
+    background-color: #3e3f45;
+  }
+}

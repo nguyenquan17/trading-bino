@@ -1,0 +1,50 @@
+:root {
+  --color-black: #000;
+}
+.App {
+  margin: 65px auto 0;
+  // padding-bottom: 60px;
+  // padding-left: 10px;
+  // padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  color: #fff;
+}
+
+.MuiSnackbar-root {
+  margin-top: 46px;
+}
+#svg-store {
+  position: absolute;
+  z-index: -1;
+  top: -99999999999px;
+}
+
+@media only screen and (max-width: 820px) {
+  .App {
+    margin: 57px auto 0;
+  }
+}
+
+.text-danger {
+  color: #ff646c;
+}
+.text-grey {
+  color: grey;
+}
+button {
+  cursor: pointer;
+}
+.MuiButton-containedPrimary.btn-grey {
+  padding: 4px 8px;
+  background-color: #868893;
+  font-weight: 600;
+  color: #ffffff;
+  &:hover {
+    background-color: #9a9ca9;
+  }
+}

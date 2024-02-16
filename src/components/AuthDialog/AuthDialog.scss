@@ -1,0 +1,20 @@
+.auth-dialog {
+  background-color: #2a2b30;
+  width: 500px;
+  max-width: 100%;
+  header {
+    background-color: #2a2b30;
+    box-shadow: none;
+    border-bottom: 1px solid #4D4D4D;
+  }
+  .MuiTabs-root {
+    button {
+      color: #FFFFFF;
+      text-transform: none;
+    }
+    .MuiTabs-indicator {
+      background-color: #FFFFFF;
+      height: 1px;
+    }
+  }
+}

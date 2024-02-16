@@ -1,0 +1,42 @@
+.account-summary {
+  display: flex;
+  align-items: center;
+  > button {
+    background: unset;
+    box-shadow: none;
+    border: none;
+    font-size: 16px;
+    text-transform: unset;
+    flex-direction: column;
+    color: #FFFFFF;
+    line-height: 1.45;
+    display: flex;
+    .balance {
+      min-width: 48px;
+      display: inline-block;
+      margin-top: 2px;
+      padding-left: 4px;
+      padding-right: 4px;
+      background-color: #ffdd3c;
+      color: #333;
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 4px;
+    }
+  }
+  &-list {
+    &.MuiPaper-root {
+      background-color: #2a2b30;
+    }
+    ul {
+      background-color: #2a2b30;
+      li {
+        color: #838383;
+        &:hover {
+          color: #FFFFFF;
+        }
+      }
+    }
+  }
+}

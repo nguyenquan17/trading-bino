@@ -1,0 +1,15 @@
+html,
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #fbfbfd;
+  color: #f6f7f7;
+}
+
+.text-secondary {
+  color: #868893;
+}

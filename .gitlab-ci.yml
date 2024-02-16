@@ -1,0 +1,29 @@
+image: node
+
+cache:
+  paths:
+    - node_modules/
+
+deploy:
+  stage: deploy
+  environment: production
+  variables:
+    SERVER_ADDRESS: ${DEPLOY_SERVER}
+    SERVER_FOLDER: ${SERVER_FOLDER}
+    SERVER_USERNAME: ${USERNAME}
+    SSH_PRIVATE_KEY: ${SSH_PRIVATE_KEY}
+  before_script:
+    - apt-get update -qq
+    - apt-get install -qq git
+    # Setup SSH deploy keys
+    - "which ssh-agent || ( apt-get install -qq openssh-client )"
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - yarn install
+    - CI=false yarn run build
+    - echo "Deploying to $SERVER_ADDRESS"
+    - scp -r build/ $SERVER_USERNAME@$SERVER_ADDRESS:$SERVER_FOLDER/
+    - echo "Finished copying the build files"

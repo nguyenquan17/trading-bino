@@ -1,0 +1,69 @@
+.appbar {
+  text-align: left;
+  box-shadow: none !important;
+  border-bottom: solid 1px #54565f;
+  background-color: #2a2b30 !important;
+
+  z-index: 100;
+  .MuiToolbar-root {
+    color: #f6f7f7;
+  }
+  a {
+    color: #f6f7f7;
+    text-decoration: none;
+  }
+  #logo-text {
+    display: flex;
+    align-items: center;
+    img {
+      max-height: 30px;
+      // margin-right: 5px;
+    }
+    span {
+      display: none;
+    }
+  }
+  .actions {
+    margin-left: auto;
+  }
+
+  .signup-btn {
+    color: var(--color-black);
+    height: 32px;
+    display: flex;
+    align-items: center;
+    background: #ffdd3c;
+    border: none;
+    border-radius: 8px;
+
+    font-weight: bold;
+    padding: 0 10px;
+    .icon {
+      width: 50px;
+    }
+    span {
+      display: none;
+    }
+  }
+  .token-select {
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .appbar {
+    #logo-text {
+      span {
+        display: inline-block;
+      }
+    }
+    .token-select {
+      display: block;
+    }
+    .signup-btn {
+      span {
+        display: inline-block;
+      }
+    }
+  }
+}
