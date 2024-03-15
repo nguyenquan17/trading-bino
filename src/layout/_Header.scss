@@ -5,24 +5,48 @@
   background-color: #2a2b30 !important;
 
   z-index: 100;
+
   .MuiToolbar-root {
     color: #f6f7f7;
   }
+
   a {
     color: #f6f7f7;
     text-decoration: none;
   }
+
+  .signup-btn {
+    margin-left: 10px;
+  }
+
   #logo-text {
     display: flex;
     align-items: center;
+
     img {
       max-height: 30px;
       // margin-right: 5px;
     }
+
     span {
       display: none;
     }
   }
+
+  .tabs{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-left: 1.5rem;
+    .tab-item{
+      cursor: pointer;
+      padding: 8px 12px;
+    }
+    .tab-item.active{
+      color: #ffdd3c;
+    }
+  }
+
   .actions {
     margin-left: auto;
   }
@@ -38,16 +62,23 @@
 
     font-weight: bold;
     padding: 0 10px;
+
     .icon {
       width: 50px;
     }
-    span {
-      display: none;
-    }
+
   }
+
   .token-select {
     display: none;
   }
+
+}
+.popover-menu .MuiPaper-root{
+  background-color: #2a2b30;
+  color: #fff;
+  border: solid 1px #54565f;
+  width: 400px;
 }
 
 @media only screen and (min-width: 768px) {
@@ -57,9 +88,11 @@
         display: inline-block;
       }
     }
+
     .token-select {
       display: block;
     }
+
     .signup-btn {
       span {
         display: inline-block;

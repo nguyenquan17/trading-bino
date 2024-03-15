@@ -1,100 +1,153 @@
 import React, { useContext, useState, useEffect } from "react";
 import LocalStorage from "../lib/LocalStorage";
-import { getProfile } from "../apis/UserApi";
+import { getBalance } from "../apis/UserApi";
 import { TokenSymbol } from "../interfaces/TokenSymbol";
-import { ACCOUNT_DEMO, STORE_TOKEN, TOKEN_DEFAULT } from "../lib/Const";
-import { isAccountDemo } from "../lib/Utils";
-import { Account } from "../interfaces/User";
+import {
+  ACCOUNT_TYPE, ACCOUNT_TYPE_DEFAULT,
+  ACCOUNT_TYPE_DEMO, ACCOUNT_TYPE_MAIN, ACCOUNT_TYPE_COMMISSION, ACCOUNT_TYPE_BONUS, AccountBalance,
+  STORE_ACCOUNT_TYPE, STORE_TOKEN
+} from "../lib/Const";
+
+import { IAcccountBalanceResponse } from "../apis/interfaces/UserInterfaces";
+import { fetchTokenList } from "../apis/AppApi";
+import { updateAxiosHeaders } from "../lib/AxiosConfig";
 
 export type AppContent = {
+  accountType: ACCOUNT_TYPE;
+  accountBalance?: AccountBalance;
+  mainAccount?: AccountBalance;
+  accountBalances: Map<ACCOUNT_TYPE, AccountBalance>;
+  userFetching: boolean;
+  tokenCurrent?: TokenSymbol;
   isAuthenticated: boolean;
-  balance?: number | null;
-  user?: any;
+  tokenList: Array<TokenSymbol>;
+  updateTokenCurrent: (value: any) => void;
+  updateAccountType: (value: ACCOUNT_TYPE) => void;
   authenticate: (value: any) => void;
-  userFetching?: boolean;
-  tokenCurrent?: any;
-  updateTokenCurrent?: (value: any) => void;
+  updateAccountBalance: (callback?: Function) => void;
+  setMainAccount: (value: AccountBalance) => void,
 };
 
+
+
 const AppContext = React.createContext<AppContent>({
-  isAuthenticated: false,
-  balance: 0,
-  authenticate: () => {},
+  accountType: ACCOUNT_TYPE_DEFAULT,
   userFetching: true,
+  accountBalances: new Map<ACCOUNT_TYPE, AccountBalance>(),
+  isAuthenticated: false,
+  authenticate: () => { },
+  updateAccountBalance: () => { },
+  setMainAccount: () => ({} as AccountBalance),
+  updateTokenCurrent: () => { },
+  updateAccountType: () => { },
+  tokenList: [],
 });
 
 export const AppProvider = ({ children }: any) => {
-  const [balance, setBalance] = useState<number | null>(null);
-  const [user, setUser] = useState<Account | null>(null);
-  const [tokenCurrent, setTokenCurrent] = useState(
-    LocalStorage.getJson(STORE_TOKEN, TOKEN_DEFAULT)
+  const [accountBalances, setAccountBalances] = useState<Map<ACCOUNT_TYPE, AccountBalance>>(new Map<ACCOUNT_TYPE, AccountBalance>);
+  const [tokenCurrent, setTokenCurrent] = useState<TokenSymbol>(
+    LocalStorage.getJson(STORE_TOKEN, null)
   );
+  const [mainAccount, setMainAccount] = useState<AccountBalance>();
+  const [accountType, setAccountType] = useState<ACCOUNT_TYPE>(LocalStorage.get(STORE_ACCOUNT_TYPE, ACCOUNT_TYPE_DEFAULT));
   const [userFetching, setUserFetching] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    !!LocalStorage.get("uid", false) && !isAccountDemo()
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [tokenList, setTokenList] = useState<Array<TokenSymbol>>([]);
 
   useEffect(() => {
-    _initializeToken();
-    if (isAccountDemo()) {
-      const demoBalance = LocalStorage.get("demo_balance");
-      if (demoBalance) {
-        setBalance(Number(demoBalance));
-      }
-      setUser(ACCOUNT_DEMO);
-      setUserFetching(false);
-    } else {
-      if (isAuthenticated && !user) {
-        setUserFetching(true);
-        getProfile()
-          .then((data) => {
-            setUser(data?.data);
-            setBalance(data?.data?.balance ?? 0);
-          })
-          .catch((err) => {
-            setUser(null);
-          })
-          .finally(() => {
-            setUserFetching(false);
-          });
-      } else {
+
+    setUserFetching(true);
+    updateAccountBalance();
+    updateTokenList();
+  }, []);
+
+  const updateTokenList = () => {
+    fetchTokenList()
+      .then((res) => {
+        const list: Array<TokenSymbol> = res.data;
+        if (!tokenCurrent) {
+          updateTokenCurrent(list[0]);
+        }
+        else {
+          //reupdate profit
+          for (var i = 0; i < list.length; i++) {
+            if (list[i].symbol == tokenCurrent.symbol) {
+
+              updateTokenCurrent(list[i]);
+            }
+          }
+        }
+        setTokenList(list);
+      })
+      .catch();
+  }
+  const updateAccountBalance = (callback?: any) => {
+
+    getBalance()
+      .then((data: any) => {
+        const balanceData: IAcccountBalanceResponse = data.data;
+        const mapAccountBalances: Map<ACCOUNT_TYPE, AccountBalance> = new Map<ACCOUNT_TYPE, AccountBalance>();
+        mapAccountBalances.set(ACCOUNT_TYPE_DEMO, { type: ACCOUNT_TYPE_DEMO, balance: balanceData.demo, id: balanceData.id });
+        if (balanceData.auth) {
+          mapAccountBalances.set(ACCOUNT_TYPE_MAIN, { type: ACCOUNT_TYPE_MAIN, balance: balanceData.main, id: balanceData.id } as AccountBalance);
+          mapAccountBalances.set(ACCOUNT_TYPE_COMMISSION, { type: ACCOUNT_TYPE_COMMISSION, balance: balanceData.commission, id: balanceData.id } as AccountBalance);
+          mapAccountBalances.set(ACCOUNT_TYPE_BONUS, { type: ACCOUNT_TYPE_BONUS, balance: balanceData.bonus, id: balanceData.id } as AccountBalance);
+        }
+        setIsAuthenticated(balanceData.auth);
+        if (!balanceData.auth || ![ACCOUNT_TYPE_DEMO, ACCOUNT_TYPE_MAIN, ACCOUNT_TYPE_BONUS].includes(accountType)) {
+          setAccountType(ACCOUNT_TYPE_DEFAULT);
+        }
+
+        setAccountBalances(mapAccountBalances);
+
+        accountBalances?.forEach((accountBalance) => {
+          if (accountBalance.type == ACCOUNT_TYPE_MAIN) {
+            setMainAccount(accountBalance);
+          }
+        });
+      })
+      .catch((err) => {
+        setAccountBalances(new Map<ACCOUNT_TYPE, AccountBalance>());
+      })
+      .finally(() => {
         setUserFetching(false);
-        setBalance(0);
-      }
-    }
-  }, [isAuthenticated]);
-
-  const _initializeToken = () => {
-    const tokenStorage: TokenSymbol = LocalStorage.getJson(
-      STORE_TOKEN,
-      TOKEN_DEFAULT
-    );
-    if (tokenStorage) {
-      setTokenCurrent(tokenStorage);
-    }
-  };
-
-  const authenticate = (uid?: string) => {
-    const value = !!uid;
-    value ? LocalStorage.set("uid", uid) : LocalStorage.remove("uid");
+        if (callback)
+          callback();
+      });
+  }
+  const authenticate = (token?: string) => {
+    const value = !!token;
+    value ? LocalStorage.setAccessToken(token) : LocalStorage.removeAccessToken();
+    updateAxiosHeaders();
     setIsAuthenticated(value);
   };
 
   const updateTokenCurrent = (token: TokenSymbol) => {
     LocalStorage.setJson(STORE_TOKEN, token);
     setTokenCurrent(token);
-  };
+  }
+
+  const updateAccountType = (accountType: ACCOUNT_TYPE) => {
+    localStorage.setItem(STORE_ACCOUNT_TYPE, accountType);
+    setAccountType(accountType);
+  }
+
 
   return (
     <AppContext.Provider
       value={{
-        isAuthenticated,
-        balance,
-        user,
+        authenticate,
+        accountType,
+        userFetching,
         tokenCurrent,
         updateTokenCurrent,
-        authenticate,
-        userFetching,
+        updateAccountType,
+        accountBalances,
+        isAuthenticated,
+        mainAccount,
+        updateAccountBalance,
+        setMainAccount,
+        tokenList
       }}
     >
       {children}
@@ -103,3 +156,5 @@ export const AppProvider = ({ children }: any) => {
 };
 
 export const useApp = () => useContext(AppContext);
+
+

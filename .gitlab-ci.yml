@@ -1,12 +1,10 @@
-image: node
+image: node:16
 
-cache:
-  paths:
-    - node_modules/
+stages:
+  - deploy
 
 deploy:
   stage: deploy
-  environment: production
   variables:
     SERVER_ADDRESS: ${DEPLOY_SERVER}
     SERVER_FOLDER: ${SERVER_FOLDER}
@@ -22,8 +20,13 @@ deploy:
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - yarn install
-    - CI=false yarn run build
-    - echo "Deploying to $SERVER_ADDRESS"
-    - scp -r build/ $SERVER_USERNAME@$SERVER_ADDRESS:$SERVER_FOLDER/
-    - echo "Finished copying the build files"
+    #- git checkout server
+    #- git pull origin server
+    #- npm i
+    - echo "SSH to $SERVER_ADDRESS and Git Pull"
+    - ssh $SERVER_USERNAME@$SERVER_ADDRESS "cd $SERVER_FOLDER && git pull origin server"
+    #- rsync -avz --exclude=node_modules/ ./* $SERVER_USERNAME@$SERVER_ADDRESS:$SERVER_FOLDER/
+    - echo "Finished "
+
+  only:
+    - server

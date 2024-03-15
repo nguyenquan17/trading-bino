@@ -1,7 +1,8 @@
 .account-summary {
   display: flex;
   align-items: center;
-  > button {
+
+  >button:not(.signup-btn) {
     background: unset;
     box-shadow: none;
     border: none;
@@ -11,9 +12,11 @@
     color: #FFFFFF;
     line-height: 1.45;
     display: flex;
+
     .balance {
       min-width: 48px;
       display: inline-block;
+      width: 100%;
       margin-top: 2px;
       padding-left: 4px;
       padding-right: 4px;
@@ -24,18 +27,152 @@
       font-weight: bold;
       border-radius: 4px;
     }
+
+    .switch-account {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      p {
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 16px;
+      }
+    }
   }
+
+  .btn-deposit {
+    display: flex;
+    flex-direction: row;
+    background-color: #ffdd3c;
+    color: #333;
+    border-radius: 8px;
+    margin-right: 16px;
+    height: 40px;
+
+    &:hover {
+      background: #ffdd3c;
+    }
+  }
+
+  .btn-withdraw {
+    display: flex;
+    flex-direction: row;
+    background-color: transparent;
+    color: #ffffff;
+    border: 2px solid rgb(84, 86, 95);
+    border-radius: 8px;
+    padding: 5px 8px;
+    height: 40px;
+
+    &:hover {
+      background: none;
+    }
+  }
+
+  .custom-reload-balance {
+    margin: 0 12px;
+    border: 2px solid rgb(84, 86, 95);
+    border-radius: 8px;
+    padding: 6px;
+    background: transparent;
+
+    .icon-reload {
+      webkit-animation: rotateIn 0.7s;
+      animation: rotateIn 0.7s;
+    }
+
+    .icon-reload.active {
+      webkit-animation: rotateOut 0.7s;
+      animation: rotateOut 0.7s;
+    }
+  }
+
+  .box-avatar {
+    .avatar {
+      background: #3E3F45;
+      color: #868893;
+      font-size: 12px;
+      line-height: 16px;
+      margin: 0 0 0 16px;
+      cursor: pointer;
+      transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+      -webkit-transition: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+      transition-property: color, background-color;
+
+      &:hover {
+        color: #F6F7F7;
+        background-color: #54565F;
+      }
+    }
+
+  }
+
+
   &-list {
     &.MuiPaper-root {
-      background-color: #2a2b30;
+      background-color: #2A2B30;
+      border-radius: 12px;
+
     }
+
     ul {
       background-color: #2a2b30;
+
       li {
         color: #838383;
+        padding: 6px;
+        margin: 0 8px;
+        transition: 0.15s ease;
+        border-radius: 8px;
+
         &:hover {
           color: #FFFFFF;
         }
+
+        .box-account {
+          color: #ffffff;
+
+          .form-control-radio {
+            .MuiRadio-root {
+              padding: 0 9px;
+              color: #ffdd3c;
+
+              &:hover {
+                background-color: transparent !important;
+              }
+            }
+
+          }
+
+          p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 20px;
+            padding-left: 32px;
+          }
+        }
+
+        &:hover {
+          background-color: #3E3F45;
+        }
+      }
+
+      .MuiMenuItem-divider {
+        border-bottom: 1px solid #54565F;
+      }
+    }
+  }
+}
+
+.account-profile {
+  ul {
+    li {
+      padding: 12px;
+
+      p {
+        font-size: 14px;
+        line-height: 20px;
       }
     }
   }

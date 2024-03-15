@@ -13,5 +13,5 @@ export const fetchTokenList = async () => {
 };
 
 export const deposit = (data: any) => {
-  return axios.get("/v1/user/deposit", data);
+  return axios.post("/v1/user/deposit", data);
 };

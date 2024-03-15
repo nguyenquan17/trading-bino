@@ -17,7 +17,7 @@ export default function Footer() {
           <p>
             <span>Email</span>
             <a className="mail" id="mail" target="_blank">
-              support@quarax.com
+              : support@quarax.com
             </a>
           </p>
           <p className="row" id="addresses">

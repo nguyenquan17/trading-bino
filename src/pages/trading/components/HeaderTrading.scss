@@ -1,0 +1,53 @@
+.layout-header-trading{
+  padding: 12px 0;
+  background: #2a2b30;
+  z-index: 4;
+  position: relative;
+  .ticker-list-container{
+    display: flex;
+    flex-flow: row;
+    -webkit-box-align: center;
+    align-items: center;
+    position: relative;
+    margin-left: 32px;
+    margin-right: 8px;
+    overflow: hidden;
+    .ticker-list{
+      white-space: nowrap;
+      overflow: auto hidden;
+      .ticker-item{
+        display: inline-block;
+        padding-right: 1.5rem;
+        .ticker-item-label{
+          font-size: 12px;
+          margin-right: 0px;
+          margin-bottom: 2px;
+          color: rgb(132, 142, 156);
+          line-height: 16px;
+          font-weight: 400;
+          text-align: left;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .ticker-item-price{
+          font-size: 12px;
+          .down{
+            color: rgb(255, 100, 108);
+          }
+          .up{
+            color: rgb(20, 198, 121);
+          }
+        }
+      }
+    }
+  }
+}
+@media screen and (max-width: 769px) {
+  .layout-header-trading{
+    //position: absolute;
+    .ticker-list-container{
+      margin-left: 16px;
+    }
+  }
+}

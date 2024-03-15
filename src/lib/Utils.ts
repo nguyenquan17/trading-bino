@@ -82,3 +82,14 @@ export function emailValidator(str: string) {
 export function isAccountDemo() {
   return LocalStorage.get("uid", "")?.indexOf("demo") === 0;
 }
+
+
+export function generateRandomString(length?: number) {
+  if (!length) length = 20;
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}

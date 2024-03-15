@@ -5,13 +5,12 @@ import "./TradingPanel.scss";
 import { getEventEmitter, isMobile } from "../../../lib/Utils";
 import { Popover, PopoverOrigin } from "@mui/material";
 import SocketGlobal from "../../../lib/SocketGlobal";
-import { IGNORE_BID_SECONDS } from "../../../lib/Const";
+import { ACCOUNT_TYPE, IGNORE_BID_SECONDS } from "../../../lib/Const";
 import { useApp } from "../../../contexts/AppContext";
 import LocalStorage from "../../../lib/LocalStorage";
 import { Socket } from "socket.io-client";
-
 export default function TradingPanel() {
-  const { tokenCurrent } = useApp();
+  const { tokenCurrent, accountType } = useApp();
   const [numUsdt, setNumUsdt] = useState(
     LocalStorage.getUserSettings("bid_amount", 1)
   );
@@ -21,10 +20,12 @@ export default function TradingPanel() {
   const [openTimeOptionPopover, setOpenTimeOptionPopover] = useState(false);
   const pricePopoverId = "price-option-popover";
   const timePopoverId = "time-option-popover";
-  const socket = SocketGlobal.getInstance(tokenCurrent.symbol);
+  const socket = SocketGlobal.getInstance(tokenCurrent!.symbol);
   const [time1Options, setTime1Options] = useState([]);
+
   const [time15Options, setTime15Options] = useState([]);
   const [selectedTime, setSelectedTime] = useState(0);
+  const [removeFirstTime, setRemoveFirstTime] = useState(false);
   const [anchorOrigin, setAnchorOrigin] = useState<PopoverOrigin>({
     vertical: "top",
     horizontal: "left",
@@ -62,22 +63,32 @@ export default function TradingPanel() {
     }, 100);
   }, []);
 
+
   useEffect(() => {
-    getEventEmitter().addListener(
-      "remainBidSeconds",
-      (remainBidSeconds: number) => {
-        // console.log("xxxxxxxxxx" + remainBidSeconds);
-        if (remainBidSeconds < IGNORE_BID_SECONDS) {
-          // console.log(selectedTime, " == ", time1Options[0]);
-          if (selectedTime == time1Options[0]) {
-            // console.log("vao day");
-            setSelectedTime(time1Options[1]);
+
+    const listener = (remainBidSeconds: number) => {
+      if (remainBidSeconds < IGNORE_BID_SECONDS) {
+        if (!removeFirstTime) {
+          setRemoveFirstTime
+            (true);
+          let new1TimeOpts: any = [...time1Options];
+          new1TimeOpts.shift();
+          setTime1Options(new1TimeOpts);
+          if (selectedTime < new1TimeOpts[0]) {
+            setSelectedTime(new1TimeOpts[0]);
           }
-          // setTime1Options(time1Options.slice(1));
         }
+      } else {
+        setRemoveFirstTime
+          (false);
       }
-    );
-  }, [time15Options, time1Options]);
+    };
+
+    getEventEmitter().addListener("remainBidSeconds", listener);
+    return () => {
+      getEventEmitter().removeListener("remainBidSeconds", listener);
+    };
+  }, [time1Options, removeFirstTime]);
 
   const priceOptions = [1, 5, 10, 20, 50, 100, 200, 1000, 2000, 5000];
 
@@ -103,6 +114,7 @@ export default function TradingPanel() {
     }
   };
   const selecUsdt = (num: number) => {
+    LocalStorage.setUserSettings("bid_amount", num);
     setNumUsdt(num);
   };
   const milisecondsToHM = (milliseconds: number) => {
@@ -113,6 +125,28 @@ export default function TradingPanel() {
 
     return formattedDateTime;
   };
+
+  const betUp = () => {
+    const betParams: IBet = {
+      accountType: accountType,
+      type: "betUp",
+      usdt: numUsdt,
+      processTime: selectedTime,
+    }
+    socket?.emit("channel:bid", betParams);
+  }
+  const betDown = () => {
+
+
+    const betParams: IBet = {
+      accountType: accountType,
+      type: "betDown",
+      usdt: numUsdt,
+      processTime: selectedTime,
+    }
+    console.log(betParams);
+    socket?.emit("channel:bid", betParams);
+  }
   return (
     <>
       <div className="trading-panel">
@@ -200,9 +234,9 @@ export default function TradingPanel() {
         <div className="deals-info">
           <p className="earn text-primary">
             <span className="earn-text ">Earnings</span>
-            <span className="earn-number">+{tokenCurrent.profit}%</span>
+            <span className="earn-number">+{tokenCurrent?.profit}%</span>
           </p>
-          <p className="asset-rate">$41,400</p>
+          <p className="asset-rate">+{tokenCurrent ? (numUsdt * (1 + tokenCurrent.profit / 100)) : ''}</p>
         </div>
         <div className="trade-menu">
           <div className="majority-opinion">
@@ -220,13 +254,7 @@ export default function TradingPanel() {
           <button
             type="button"
             className="up"
-            onClick={() => {
-              socket?.emit("channel:bid", {
-                type: "betUp",
-                usdt: numUsdt,
-                processTime: selectedTime,
-              });
-            }}
+            onClick={() => betUp()}
           >
             <BaseSvgIcon
               className="up_icon"
@@ -238,11 +266,7 @@ export default function TradingPanel() {
             type="button"
             className="down"
             onClick={() => {
-              socket?.emit("channel:bid", {
-                type: "betDown",
-                usdt: numUsdt,
-                processTime: selectedTime,
-              });
+              socket?.emit("channel:bid", betDown());
             }}
           >
             <BaseSvgIcon
@@ -322,4 +346,12 @@ export default function TradingPanel() {
       </Popover>
     </>
   );
+}
+
+
+interface IBet {
+  accountType: ACCOUNT_TYPE;
+  type: "betUp" | "betDown"
+  usdt: number
+  processTime: number,
 }

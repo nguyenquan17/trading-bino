@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { createChart, CrosshairMode, Time } from "lightweight-charts";
-import { Socket } from "socket.io-client";
+import { createChart, CrosshairMode, IChartApi, IPriceLine, ISeriesApi, PriceScaleMode, UTCTimestamp } from "lightweight-charts";
 
 import "./Chart.scss";
 import { Dialog, DialogContent, Slide } from "@mui/material";
@@ -12,29 +11,31 @@ import {
   isMobile,
   showLoader,
 } from "../../../lib/Utils";
-import { add0First } from "../../../lib/NumberUtils";
+import { add0First, roundToNDecimal } from "../../../lib/NumberUtils";
 import SocketGlobal from "../../../lib/SocketGlobal";
 import { timeToLocal } from "../../../lib/DateTimeUtils";
 import { IGNORE_BID_SECONDS } from "../../../lib/Const";
 import { useApp } from "../../../contexts";
+import BaseSvgIcon from "../../../base/BaseSvgIcon";
 
 export default function Chart() {
-  const { tokenCurrent } = useApp();
+  const { tokenCurrent, updateAccountBalance } = useApp();
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chart = useRef();
   const resizeObserver = useRef<ResizeObserver>();
   let historyPrices: Array<ICandle> = [];
+  let hozLines: Array<IHozLine> = [];
   let svg: HTMLElement;
   let fakePriceItv: any;
-  let candleSeries: any;
+  let candleSeries: ISeriesApi<any>;
   let futureTimeCandleSeries: any;
-  let currentChart: any;
+  let currentChart: IChartApi;
   let currentChartContainer: any;
   let currentResizeObserver: ResizeObserver;
   let visibleTimeRange: IVisibleTime;
   const [showWin, setShowWin] = useState(false);
   const [totalWin, setTotalWin] = useState(0);
-
+  let socketConnected = false;
   const maxCandleOnWeb = 48;
   const maxCandleOnMobile = 28;
   // trong vòng 30 giây không được bid phiên gần nhất
@@ -47,7 +48,7 @@ export default function Chart() {
   const red = "rgb(252, 73, 73)";
   const yellow = "#ffdd3c";
   const grey = "#6f7074";
-  const socket = SocketGlobal.getInstance(tokenCurrent.symbol);
+  const socket = SocketGlobal.getInstance(tokenCurrent!.symbol);
   let priceData: Array<any> = [];
   let listOneMinutes: Array<number> = [];
   let list15Minutes: Array<number> = [];
@@ -55,26 +56,35 @@ export default function Chart() {
   const VERTICLE_LINE_HEIGHT = 5000;
   const CIRCLE_RADIUS = 18;
   const NEXT_MINUTE_CANDLE_COUNT = 12;
-  let userInfo: IUser;
-
+  let balanceInfo: IBalanceInfo;
+  let lineSeries: ISeriesApi<any>;
+  const nextPrevFromToCandleIndex = 6;
   useEffect(() => {
-    if (tokenCurrent && socket?.connected) {
-      socket.disconnect();
-      setTimeout(() => {
-        window.location.reload();
-      }, 0);
+    return () => {
+      if (tokenCurrent) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 0);
+      }
     }
+
   }, [tokenCurrent]);
 
+
   useEffect(() => {
-    socket?.connect();
+    // socket?.connect();
     showLoader();
     document.addEventListener("visibilitychange", handleVisibilityChange);
     if (!chartContainerRef.current) return;
+
+    if (isMobile()) {
+      chartContainerRef.current.setAttribute('style', 'width: 100%; height: ' + (window.innerHeight - 267) + "px !important");
+    }
     initSocket(() => {
       historyPrices = [...priceData].map((item) => {
         return {
           ...item,
+
           time: timeToLocal(item.openTime) + secondsPerCandle,
           closeTime: item.closeTime + secondsPerCandle * 1000,
         };
@@ -87,17 +97,12 @@ export default function Chart() {
       getEventEmitter().removeAllListeners("remainBidSeconds");
       dispose();
     };
-  }, [socket]);
+  }, []);
 
   function initSocket(callback: any) {
-    // socket.io.opts.extraHeaders![STORE_SYMBOL] = "BTCUSDT";
-    // console.log(socket.io.opts.extraHeaders);
-    socket?.on("connect", () => {
-      // socket.io.opts.extraHeaders![STORE_SYMBOL] = '1';
-      // console.log(socket.id);
-    });
 
     socket?.on("channel:history_price", (data) => {
+
       priceData = data;
       callback();
     });
@@ -108,37 +113,22 @@ export default function Chart() {
       //vẽ thêm 12 cây
       drawFutureTime(NEXT_MINUTE_CANDLE_COUNT);
       if (currentChart) {
-        // const timeScale = currentChart.timeScale();
-        // timeScale.scrollToPosition(
-        //   timeScale.scrollPosition() - (isMobile() ? 1 : 2),
-        //   true
-        // );
+
         setVisibleTimeRange();
       }
     });
 
     socket?.on("channel:bid", (data) => {
+      updateAccountBalance();
       priceLines = data.biddingList;
-      userInfo = data.userinfo;
+      balanceInfo = data.balanceInfo;
       updateBalanceToHtml();
     });
 
     socket?.on("channel:bid_result", (data) => {
-      let tWin = 0;
-      priceLines.map((item) => {
-        if (item.processTime == data.processTime) {
-          // console.log(item.price, " > ", data.price);
-          const winAmount = item.amount * 1.95;
-          if (item.type == "betUp" && item.price < data.price) {
-            tWin += winAmount;
-            userInfo.balance += winAmount;
-          } else if (item.type == "betDown" && item.price > data.price) {
-            tWin += winAmount;
-            userInfo.balance += winAmount;
-          }
-          updateBalanceToHtml();
-        }
-      });
+
+      let tWin = roundToNDecimal(data.profit, tokenCurrent!.decimal_format);
+      updateAccountBalance();
       setTotalWin(tWin);
       if (tWin > 0) {
         // alert(tWin);
@@ -147,45 +137,49 @@ export default function Chart() {
       }
     });
 
-    socket?.on("channel:userinfo", (data) => {
-      // console.log(data);
-      userInfo = data;
-
-      updateBalanceToHtml();
-    });
   }
 
   function updateBalanceToHtml() {
-    const signupBtn = document.querySelector(".signup-btn");
-    if (signupBtn) signupBtn!.innerHTML = "$" + userInfo.balance;
+    // console.log('balance info', JSON.stringify(balanceInfo));
+    // const signupBtn = document.querySelector(".signup-btn"); 
+    // if (signupBtn) signupBtn!.innerHTML = "$" + balanceInfo.balance;
   }
+
 
   function init() {
     currentChartContainer = chartContainerRef.current;
     if (!currentChartContainer) return;
 
-    updateChartContainerHeight();
 
-    //@ts-ignore
-    chart.current = createChart(currentChartContainer, {
+    currentChart = createChart(currentChartContainer, {
       ...chartOptions,
       width: currentChartContainer.clientWidth,
       height: currentChartContainer.clientHeight,
     });
 
-    currentChart = chart.current!;
-
     candleSeries = currentChart.addCandlestickSeries(candleOptions);
-    // console.log(historyPrices);
+
     candleSeries.setData(historyPrices);
     currentChart
       .timeScale()
+      //@ts-ignore
       .subscribeVisibleTimeRangeChange(visibleTimeRangeChangeHandler);
 
     futureTimeCandleSeries = currentChart.addCandlestickSeries(
       futureTimeCandleOptions
     );
-
+    lineSeries = currentChart.addLineSeries({
+      color: 'transparent',
+      lineWidth: 2,
+      visible: true,
+      priceScaleId: 'lineSeriPricescale',
+      lastValueVisible: false,
+      crosshairMarkerBackgroundColor: 'transparent',
+      crosshairMarkerRadius: 0,
+      crosshairMarkerBorderColor: 'transparent'
+    });
+    //draw horizontal line 
+    drawHozLine();
     //Tạo thêm thời gian
     drawFutureTime();
     requestAnimationFrame(() => {
@@ -199,6 +193,8 @@ export default function Chart() {
       setTimeout(() => {
         setVisibleTimeRange();
       }, 200);
+
+
     });
 
     listenWindowResize();
@@ -221,36 +217,132 @@ export default function Chart() {
     currentResizeObserver.observe(currentChartContainer);
   }
 
-  function updateChartContainerHeight() {
-    let height = null;
-    if (isMobile()) {
-      height =
-        window.innerHeight -
-        document.querySelector("header")!.clientHeight -
-        document.querySelector(".trading-panel")!.clientHeight +
-        "px";
-    } else {
-    }
-    currentChartContainer.style.height = height;
+  const hozPriceTagHeight = 21;
+  function drawHozLine() {
+
+    updateHozData();
+
+    let notiTag = document.querySelector('.hoz-line-icon-container') as HTMLSpanElement;
+    currentChart.subscribeClick(function (param: any) {
+      let distanceFromRight = distanceFromRightScale(param);
+      if (distanceFromRight > 20) {
+        return;
+      }
+      const price = lineSeries.coordinateToPrice(param.point.y)!;
+      const hozId = 'line-series-' + tokenCurrent?.symbol + '-' + price;
+      const lineSeri = lineSeries.createPriceLine({
+        price: price,
+        color: 'white',
+        lineWidth: 1,
+        lineStyle: 1, // Solid line
+        axisLabelVisible: false,
+        id: hozId,
+
+      });
+      hozLines.push(createNotiIcon(lineSeri, (param.point.y - hozPriceTagHeight / 2) + 'px'));
+      notiTag.style.display = 'none';
+    });
+
+    currentChart.subscribeCrosshairMove(function (param: any) {
+      if (param.point) {
+        notiTag.style.display = 'flex';
+        notiTag.style.top = (param.point.y - hozPriceTagHeight / 2) + 'px';
+        notiTag.style.width = getHozTagWidth() + 'px';
+        notiTag.innerText = lineSeries.coordinateToPrice(param.point.y)!.toString();
+      }
+      else {
+        notiTag.style.display = 'none';
+      }
+    });
+  }
+  function createNotiIcon(lineSeri: IPriceLine, top: string): IHozLine {
+    const notiTagGhim = document.createElement('span');
+    const clzzName = 'hoz-line-icon-container-ghim';
+
+    notiTagGhim.className = isMobile() ? clzzName + '-mobile' : clzzName;
+
+    let topNum = parseInt(top.replace('px', '')) + 1;
+    notiTagGhim.style.top = topNum + 'px';
+
+    //@ts-ignore
+    notiTagGhim.style.width = getHozTagWidth() + 'px';
+    const price = lineSeri.options().price;
+    const id = 'hoz-line-' + tokenCurrent?.symbol + '-' + lineSeri.options().price;
+    notiTagGhim.innerText = price.toString();
+    notiTagGhim.id = id;
+
+    const hozLine = {
+      tagId: id,
+      symbol: tokenCurrent?.symbol,
+      price: lineSeri.options().price
+    } as IHozLine;
+
+    notiTagGhim.addEventListener('click', () => {
+      lineSeries.removePriceLine(lineSeri);
+      notiTagGhim.remove();
+      hozLines = hozLines.filter(e => { return e.price != price; })
+
+
+    });
+    chartContainerRef.current!.appendChild(notiTagGhim);
+    return hozLine;
+  }
+  function updateHozPos() {
+    hozLines.forEach(e => {
+      const top = lineSeries.priceToCoordinate(e.price)!;
+      document.getElementById(e.tagId)!.style.top = (top - hozPriceTagHeight / 2) + 'px';
+    });
+
+  }
+  function getHozTagWidth() {
+    //@ts-ignore
+    return (document.querySelectorAll('.tv-lightweight-charts table td')[2]!.offsetWidth + 21);
+  }
+  function updateHozData() {
+    updateHozLineData();
+    updateHozPos();
+
+  }
+  function updateHozLineData() {
+    let seriesData: Array<any> = [...historyPrices.map((value) => {
+      return { time: value.time, value: value.open, color: 'transparent' };
+    })];
+    const futureData = futureTimeData.map((value) => {
+      return { time: value.time, value: value.open, color: 'transparent' };
+    });
+    futureData.forEach((val) => {
+      if (seriesData[seriesData.length - 1].time < val.time) {
+        seriesData.push(val);
+      }
+    });
+    lineSeries.setData(seriesData);
+  }
+  function distanceFromRightScale(params: any) {
+
+    const timeScaleWidth = currentChart.timeScale().width();
+    const range = Math.abs(timeScaleWidth - params.point.x);
+    return range;
   }
 
+
   function setVisibleTimeRange() {
+
     let from =
       historyPrices[
         historyPrices.length > maxCandleOnWeb
-          ? historyPrices.length - maxCandleOnWeb
+          ? historyPrices.length - maxCandleOnWeb + nextPrevFromToCandleIndex
           : 0
-      ].time;
-    const lastTime = historyPrices[historyPrices.length - 1].time;
-    let to = lastTime + 200;
+      ].time as UTCTimestamp;
+    const lastTime = historyPrices[historyPrices.length - nextPrevFromToCandleIndex].time;
+    let to = (lastTime + 200) as UTCTimestamp;
     if (isMobile()) {
       from =
         historyPrices[
           historyPrices.length > maxCandleOnMobile
-            ? historyPrices.length - maxCandleOnMobile
+            ? historyPrices.length - maxCandleOnMobile + nextPrevFromToCandleIndex
             : 0
-        ].time;
-      to = lastTime + 100;
+        ].time as UTCTimestamp;
+      to = (lastTime + 100) as UTCTimestamp;
     }
     currentChart.timeScale().setVisibleRange({
       from: from,
@@ -279,27 +371,21 @@ export default function Chart() {
 
   function livePrice() {
     socket?.on("channel:live_price", (data) => {
-      // console.log(data.closePrice);
+
       const newCandle = {
         time: timeToLocal(data.openTime) + secondsPerCandle,
         closeTime: data.closeTime + 1000 * secondsPerCandle,
         ...data,
       };
-      // console.log(newCandle);
+
       const lastCandle = { ...historyPrices[historyPrices.length - 1] };
 
       //trong history chưa có cây này
       if (lastCandle.time != newCandle.time) {
-        // console.log(newCandle);
-        // console.log(
-        //   "add candle",
-        //   newCandle.time,
-        //   timeToLocal(newCandle.closeTime)
-        // );
+
         const timeScale = currentChart.timeScale();
         timeScale.scrollToPosition(timeScale.scrollPosition() + 1, true);
 
-        // console.log(historyPrices[historyPrices.length - 1], newCandle);
         const lastCandle = historyPrices[historyPrices.length - 1];
         const tempCandle = {
           time: newCandle.time,
@@ -310,11 +396,11 @@ export default function Chart() {
           low: lastCandle.close,
           close: lastCandle.close,
         };
-        //         const date = new Date(milliseconds);
-        // const formattedDate = date.toISOString();
+
 
         historyPrices.push(tempCandle);
         candleSeries.setData(historyPrices);
+        updateHozData();
 
         requestAnimationFrame(() => {
           drawLineCircle();
@@ -333,7 +419,7 @@ export default function Chart() {
   }
 
   function updateCanvasSize() {
-    updateChartContainerHeight();
+
     const lwCanvas = document.querySelector(".chart-container canvas");
     if (!lwCanvas || !svg) return;
 
@@ -355,10 +441,8 @@ export default function Chart() {
         ? futureTimeData[futureTimeData.length - 1]
         : priceData[priceData.length - 1];
     if (!lastCandle) return;
-    // console.log(lastCandle.time);
 
     for (var i = 1; i <= candleCount; i++) {
-      // console.log(timeToLocal(lastCandle.openTime) + secondsPerCandle * i);
       futureTimeData.push({
         time: timeToLocal(lastCandle.openTime) + secondsPerCandle * i,
         openTime: lastCandle.openTime + secondsPerCandle * 1000 * i,
@@ -370,6 +454,7 @@ export default function Chart() {
       });
     }
     futureTimeCandleSeries.setData(futureTimeData);
+    updateHozData();
   }
 
   function animatePriceChange(
@@ -395,6 +480,7 @@ export default function Chart() {
 
       requestAnimationFrame(() => {
         drawLineCircle();
+        updateHozPos();
       });
       if (progress < 1) {
         requestAnimationFrame(animationStep);
@@ -423,9 +509,9 @@ export default function Chart() {
     // targetTime;
     const targetPrice = highestHigh;
     const timeScale = currentChart.timeScale();
-    const xCoordinate = timeScale.timeToCoordinate(targetTime);
+    const xCoordinate = timeScale.timeToCoordinate(targetTime as UTCTimestamp);
     const xGreyCoordinate = timeScale.timeToCoordinate(
-      targetTime - IGNORE_BID_SECONDS
+      targetTime - IGNORE_BID_SECONDS as UTCTimestamp
     );
     const yCoordinate = candleSeries.priceToCoordinate(targetPrice);
     if (!xCoordinate || !yCoordinate) {
@@ -465,7 +551,7 @@ export default function Chart() {
         //vẽ text
         var text = "\n:" + add0First(remainBidseconds);
         htmlText = vsprintf('<text x="%s" y="%s" fill="#fff">%s</text>', [
-          xPos - radius / 2,
+          xPos! - radius / 2,
           yCoordinate - radius / 1.5,
           text,
         ]);
@@ -504,28 +590,22 @@ export default function Chart() {
       }
 
       let x1 = timeScale.timeToCoordinate(
-        timeToLocal(priceLines[i].bidTime) + secondsPerCandle
+        timeToLocal(priceLines[i].bidTime) + secondsPerCandle as UTCTimestamp
       );
       if (!x1) {
-        x1 = timeScale.timeToCoordinate(historyPrices[0].time);
+        x1 = timeScale.timeToCoordinate(historyPrices[0].time as UTCTimestamp);
       }
-      const y1 = candleSeries.priceToCoordinate(priceLines[i].price);
-      // console.log(x1);
-      // console.log(
-      //   priceLines[i],
-      //   timeToLocal(priceLines[i].processTime) -
-      //     timeToLocal(priceLines[i].bidTime)
-      // );
+      const y1 = candleSeries.priceToCoordinate(priceLines[i].price)!;
+
 
       let x2 = timeScale.timeToCoordinate(
-        timeToLocal(priceLines[i].processTime)
+        timeToLocal(priceLines[i].processTime) as UTCTimestamp
       );
       if (!x2) {
         x2 = timeScale.timeToCoordinate(
-          futureTimeData[futureTimeData.length - 1].time
+          futureTimeData[futureTimeData.length - 1].time as UTCTimestamp
         );
       }
-      // console.log(x2);
       const y2 = y1;
 
       list.push(
@@ -538,7 +618,7 @@ export default function Chart() {
         ])
       );
 
-      const px = x1 - 80;
+      const px = x1! - 80;
       const py = y1 - 15;
       const tx = px + 20;
       const ty = py + 20;
@@ -577,6 +657,8 @@ export default function Chart() {
         style={{ width: "100%" }}
       >
         <svg id="draw-line-circle"></svg>
+        <span className="hoz-line-icon-container">
+        </span>
       </div>
 
       <Dialog
@@ -601,6 +683,7 @@ const chartOptions = {
   layout: {
     background: { color: "#1e1f22" },
     textColor: "rgba(255, 255, 255, 0.9)",
+    // lineColor: '#2B2B43',
   },
   grid: {
     vertLines: {
@@ -612,7 +695,11 @@ const chartOptions = {
   },
   crosshair: {
     mode: CrosshairMode.Normal,
+    horzLine: {
+      labelBackgroundColor: 'rgb(255, 255, 255)',
+    }
   },
+
   timeScale: {
     // visible: false,
     borderColor: "transparent",
@@ -628,6 +715,7 @@ const chartOptions = {
     // lockVisibleTimeRangeOnResize: true,
     // rightOffset: 0,
   },
+
 };
 const candleOptions = {
   upColor: "#14c679",
@@ -638,6 +726,7 @@ const candleOptions = {
   wickUpColor: "#14c679",
 };
 const futureTimeCandleOptions = {
+  visible: false,
   lastValueVisible: false,
   priceLineVisible: false,
   upColor: "transparent",
@@ -650,6 +739,7 @@ const futureTimeCandleOptions = {
   wickDownColor: "transparent",
   wickUpColor: "transparent",
 };
+
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {
@@ -676,18 +766,22 @@ interface IVisibleTime {
 }
 
 interface IBidding {
-  authtoken: String;
   pair: String;
-  uid: String;
   amount: number;
   price: number;
   bidTime: number;
   processTime: number;
-  ip: String;
   type: String;
 }
-interface IUser {
-  authtoken: string;
-  uid: string;
-  balance: number;
+interface IBalanceInfo {
+  demo: number;
+  main: number;
+  reward: number;
+}
+
+
+interface IHozLine {
+  tagId: string;
+  symbol: string;
+  price: number;
 }

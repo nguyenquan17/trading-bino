@@ -5,31 +5,10 @@ import { Dialog, Box, Typography, Tab, Tabs, AppBar } from '@mui/material';
 import { useSettings } from '../../contexts/SettingsContext';
 import Signup from '../Signup/Signup';
 import Signin from '../Signin/Signin';
+import TabPanel from "../../base/TabPanel/TabPanel";
 import './AuthDialog.scss';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  dir?: string;
-  index: number;
-  value: number;
-}
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      hidden={value !== index}
-      {...other}
-    >
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
 
 export default function AuthDialog() {
   const theme = useTheme();

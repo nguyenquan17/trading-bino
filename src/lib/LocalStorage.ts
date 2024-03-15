@@ -1,7 +1,7 @@
-import { tryParse } from "./StrUtils";
+import { STORE_AUTH_TOKEN, STORE_UID } from "./Const";
+import { genUID, tryParseJSON } from "./StrUtils";
 
 const USER_SETTINGS = "user_settings";
-
 class LocalStorage {
   static set(key: string, value: any) {
     return localStorage.setItem(key, value);
@@ -9,7 +9,7 @@ class LocalStorage {
 
   static get(key: string, defaultValue?: any) {
     const value = localStorage.getItem(key);
-    if (typeof value === "undefined" && typeof defaultValue !== "undefined") {
+    if ((typeof value === "undefined" || value == null) && typeof defaultValue !== "undefined") {
       return defaultValue;
     }
     return value;
@@ -26,9 +26,9 @@ class LocalStorage {
   static getJson(key: string, defaultValue?: any) {
     const value = localStorage.getItem(key);
     if (!value && typeof defaultValue !== "undefined") {
-      return tryParse(defaultValue);
+      return tryParseJSON(defaultValue);
     }
-    return tryParse(value);
+    return tryParseJSON(value);
   }
 
   // User settings
@@ -50,6 +50,28 @@ class LocalStorage {
     if (typeof defaultValue !== "undefined") {
       return defaultValue;
     }
+  }
+
+  static getUid() {
+    let uid = localStorage.getItem(STORE_UID);
+    if (!uid) {
+      uid = genUID();
+      localStorage.setItem(STORE_UID, uid);
+    }
+    return uid;
+  }
+
+  static getAccessToken() {
+    return localStorage.getItem(STORE_AUTH_TOKEN) || "";
+  }
+
+  static setAccessToken(accessToken: string) {
+
+    localStorage.setItem(STORE_AUTH_TOKEN, accessToken);
+
+  }
+  static removeAccessToken() {
+    LocalStorage.remove(STORE_AUTH_TOKEN);
   }
 }
 

@@ -2,46 +2,102 @@
   height: calc(100vh - 65px);
   position: relative;
   background: #1e1f22;
+
   svg {
     z-index: 2 !important;
+
     line {
       // stroke: #6f7074;
       stroke-width: 1;
     }
+
     line[stroke="green"],
     rect[stroke="green"] {
       stroke: rgb(6, 240, 6);
     }
+
     line[stroke="red"],
     rect[stroke="red"] {
       stroke: rgb(252, 73, 73);
     }
+
     text {
       font-size: 14px;
     }
   }
+
+  .hoz-line-icon-container,
+  .hoz-line-icon-container-ghim,
+  .hoz-line-icon-container-ghim-mobile {
+    cursor: pointer;
+    overflow: hidden;
+    right: 0;
+    background: #fff;
+    color: #000;
+    font-size: 11px;
+
+    display: none;
+    position: absolute;
+    z-index: 3;
+    padding: 4px;
+    padding-top: 3px;
+    padding-left: 20px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    pointer-events: none;
+    background: url(../../../assets/icons/noti.svg) #fff center left/20px 10px no-repeat;
+
+    height: 21px;
+
+  }
+
+  .hoz-line-icon-container-ghim,
+  .hoz-line-icon-container-ghim-mobile {
+    pointer-events: inherit;
+    display: flex;
+    // padding-top: 1px;
+    // padding-bottom: 1px; 
+    right: 0 !important;
+    height: 21px;
+
+    background: url(../../../assets/icons/noti.svg) #fff center left/20px 10px no-repeat;
+
+    &:hover {
+      background-image: url(../../../assets/icons/close.svg) !important;
+    }
+  }
+
+  .hoz-line-icon-container-ghim-mobile {
+    background: url(../../../assets/icons/close.svg) #fff center left/20px 10px no-repeat;
+  }
 }
+
 #loading-dialog-container {
   background: transparent;
+
   [role="dialog"] {
     background: transparent;
     box-shadow: none;
+
     .win {
       text-align: center;
+
       .title {
         color: #fff;
         font-weight: bold;
         font-size: 30px;
         margin: 0;
       }
+
       img {
         width: 150px;
       }
     }
   }
 }
+
 @media only screen and (max-width: 820px) {
   .chart-container {
-    height: calc(100vh - 65px - 150px);
+    height: calc(100vh - 368px) !important;
   }
 }

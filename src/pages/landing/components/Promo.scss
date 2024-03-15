@@ -1,0 +1,131 @@
+
+.promo {
+  background-color: #000;
+  background-image: url('../../../assets/images/landing-vip/bg-vip.jpg');
+  //background-position: top 370px right -60px;
+  background-repeat: no-repeat;
+  //background-size: 616px;
+  //padding: 36px 0 102px;
+  background-position: 100% 0;
+  background-size: 1050px;
+  padding: 52px 0 92px;
+  position: relative;
+}
+
+.promo .container{
+  .logo-wrap{
+    margin: 0 0 93px;
+
+    .logo-text{
+      img {
+        width: 30px;
+      }
+
+      width: 80px;
+      display: flex;
+      align-items: center;
+      color: #f6f7f7;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  }
+
+  .title{
+    font-size: 60px;
+    line-height: 73px;
+    margin: 0 0 28px;
+    max-width: 510px;
+  }
+  .desc{
+    font-size: 18px;
+    line-height: 25px;
+    margin: 0 0 52px;
+    max-width: 422px;
+  }
+  .btn-vip{
+    background-color: #ffe14b;
+    border-radius: 72px;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 130px;
+    padding: 20px 40px;
+    color: #000;
+    text-decoration: none;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .features-block{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: 100%;
+
+    .block{
+      display: flex;
+      align-items: center;
+      background: #0e1017;
+      border-radius: 10px;
+      min-height: 137px;
+      padding-inline-end: 8px;
+      padding-inline-start: 44px;
+      width: 262px;
+      padding-block-end: 6px;
+      padding-block-start: 6px;
+
+      .icon-wrap{
+        margin-right: 32px;
+
+      }
+      .text-block p{
+        font-size: 14px;
+      }
+      .text-block .bold{
+        font-size: 24px;
+        line-height: 26px;
+        font-weight: 600;
+        padding-top: 4px;
+      }
+
+    }
+  }
+}
+@media screen and (max-width: 1280px){
+  .promo .features-block{
+    max-width: 540px !important;
+    margin: 0 auto;
+  }
+  .promo .features-block .block{
+    margin-bottom: 28px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .promo{
+    background-position: top 370px right -60px;
+    background-repeat: no-repeat;
+    background-size: 616px;
+  }
+  .promo .container .logo-wrap{
+    margin-bottom: 32px;
+  }
+  .promo .container .title{
+    font-size: 35px;
+    line-height: 49px;
+    max-width: 280px;
+  }
+  .promo .container .desc{
+    font-size: 16px;
+    line-height: 24px;
+    max-width: 265px;
+  }
+  .promo .features-block{
+    margin: 0 auto;
+    max-width: 305px !important;
+    justify-content: center !important;
+    column-gap: 28px;
+  }
+  .promo .features-block .block{
+    margin-bottom: 28px;
+  }
+}

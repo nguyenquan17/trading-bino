@@ -1,0 +1,91 @@
+.custom-input{
+  .MuiOutlinedInput-root{
+    height: 48px;
+    border-radius: 8px;
+  }
+  .MuiInputLabel-root{
+    color: #868893;
+  }
+  .MuiFilledInput-root{
+    //border: 2px solid #e0e0e3;
+    border-radius: 8px;
+    background-color: #f6f7f7;
+    &:before{
+      border-bottom: none;
+      border-radius: 8px;
+      bottom: -2px;
+      content: ''
+    }
+    &:after{
+      border-bottom: none;
+      border-radius: 8px;
+      bottom: -2px;
+
+    }
+  }
+  .MuiFilledInput-root.Mui-error{
+    border: 1px solid #d32f2f;
+  }
+  .MuiFilledInput-root.Mui-disabled:before{
+    border-bottom-style: hidden;
+  }
+  .MuiFilledInput-root:hover:not(.Mui-disabled, .Mui-error):before {
+    border-bottom: none;
+  }
+  .MuiInputLabel-root.Mui-focused{
+    color: #868893;
+  }
+  .MuiOutlinedInput-root{
+    height: 48px;
+    border-radius: 8px;
+  }
+  .MuiFormHelperText-root{
+    color: #d32f2f;
+  }
+}
+
+.custom-btn.MuiButton-root{
+  background-color: #ffdd3c !important;
+  border-radius: 8px;
+  color: #333333 !important;
+  border: none;
+  padding: 12px 24px;
+  width: 100%;
+  font-weight: 600;
+  height: 48px;
+  cursor: pointer;
+  text-transform: none;
+}
+.custom-btn.MuiButton-root.Mui-disabled {
+  color: rgba(0, 0, 0, 0.26) !important;
+}
+
+.custom-tabs{
+  .tab-item.Mui-selected{
+    height: 64px;
+    color: #1E1F22 !important;
+
+  }
+  .tab-item{
+  }
+  .MuiTabs-indicator{
+    background-color: #1E1F22 !important;
+  }
+}
+
+@keyframes rotateIn {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes rotateOut {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}

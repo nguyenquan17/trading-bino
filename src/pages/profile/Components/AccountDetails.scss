@@ -1,0 +1,65 @@
+.account-details{
+  color: #0a0b0d;
+
+
+  .account-container{
+    width: 100%;
+    border-bottom: 1px solid #E0E0E3;
+
+  }
+  .account-avatar{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    row-gap: 1rem;
+    .account-id{
+      color: #8E8E8E;
+    }
+  }
+  .account-info, .account-avatar, .account-security, .account-two-factor{
+    max-width: 484px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .account-info{
+    .notification-change-email, .notification-confirm-email{
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background-color: rgba(30, 31, 34, 0.1);
+      border-radius: 12px;
+      p{
+        font-size: 14px;
+        line-height: 20px;
+        color: #1E1F22;
+        margin-left: 1rem;
+      }
+      .MuiSvgIcon-root{
+        color: #868893;
+      }
+    }
+    .notification-confirm-email{
+      background: rgba(255,143,0, .1);
+      border: 1px solid rgba(255, 143, 0, .2);
+    }
+  }
+
+
+  .btn-save-account{
+    background-color: #ffdd3c !important;
+    border-radius: 8px;
+    color: #333333;
+    border: none;
+    padding: 12px 24px;
+    width: 100%;
+    font-weight: 600;
+    height: 48px;
+    cursor: pointer;
+    text-transform: none;
+  }
+  .btn-save-account.Mui-disabled {
+    color: rgba(0, 0, 0, 0.26) !important;
+  }
+}

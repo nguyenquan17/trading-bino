@@ -1,0 +1,67 @@
+.ai-trading{
+  color: #000;
+  width: 100%;
+  .title{
+    text-align: center;
+    padding: 60px 0;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  .title-create{
+    font-size: 20px;
+    line-height: 24px;
+    margin-bottom: 12px;
+  }
+  .card-newbot{
+    cursor: pointer;
+    border-radius: 16px;
+    max-width: 220px;
+    padding: 20px;
+    border: 1px solid rgb(71, 77, 87);
+
+    .card-title-box{
+      margin-bottom: 12px;
+      display: flex;
+      .MuiSvgIcon-root{
+        margin-right: 8px;
+      }
+      p{
+        font-weight: 600;
+      }
+    }
+    .card-content{
+      min-height: 64px;
+      font-size: 12px;
+      line-height: 16px;
+      color: #848e9c;
+    }
+
+    .card-advantage-box{
+      margin-bottom: 12px;
+      .feature{
+        display: flex;
+        align-items: center;
+        .MuiSvgIcon-root{
+          margin-right: 8px;
+          font-size: 16px;
+        }
+        p{
+          font-size: 12px;
+          line-height: 24px;
+        }
+      }
+    }
+    .create-box{
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      p{
+        margin-right: 8px;
+      }
+      .MuiSvgIcon-root{
+        font-size: 20px;
+      }
+    }
+  }
+}

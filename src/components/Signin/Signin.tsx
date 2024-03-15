@@ -8,7 +8,8 @@ import { useApp } from "../../contexts/AppContext";
 import { login } from "../../apis/AuthApi";
 import { useSettings } from "../../contexts/SettingsContext";
 import "./Signin.scss";
-
+import SigninWithSocial from "../SigninWithSocial/SigninWithSocial";
+import { snackActions } from "../../utils/showSnackBar";
 const valuesDefault = {
   email: "",
   password: "",
@@ -27,7 +28,7 @@ interface SigninProps {
 function Signin({ onSwitch, isDark }: SigninProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { authenticate } = useApp();
+  const { authenticate, updateAccountBalance } = useApp();
   const { closeAuthDialog } = useSettings();
   const values = valuesDefault;
   const [errors, setErrors] = useState(errorsDefault);
@@ -56,12 +57,15 @@ function Signin({ onSwitch, isDark }: SigninProps) {
       setLoading(true);
       try {
         const data = await login(values);
-        authenticate(data?.uid);
+        authenticate(data.data?.access_token);
         closeAuthDialog();
+        updateAccountBalance();
         const redirect = searchParams.get("redirect");
         navigate(redirect || "/trading");
       } catch (err: any) {
-        setErrors({ ...errors, email: err.message });
+        // setErrors({ ...errors, email: err.message });
+        snackActions.error(err.message);
+
       } finally {
         setLoading(false);
       }
@@ -90,11 +94,25 @@ function Signin({ onSwitch, isDark }: SigninProps) {
         />
       </Box>
       <Box className="forgot-action" my={2}>
-        <Typography>
+        <Typography onClick={() => closeAuthDialog()}>
           <Link to="/password-recovery">Forgot my password</Link>
         </Typography>
       </Box>
       <BaseButton onClick={handleSubmit}>Sign in</BaseButton>
+      <Box
+        width='100%'
+        sx={{
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        className="wrapper-btn-social"
+      >
+        <div style={{ width: '100%', marginRight: '16px' }}>
+          <SigninWithSocial typeLogin="GOOGLE" tab="SIGN_IN" />
+        </div>
+        <SigninWithSocial typeLogin="FACEBOOK" tab="SIGN_IN" />
+      </Box>
       <Box display="flex" alignItems="center" justifyContent="center" my={2}>
         <Typography color="white" mr={2}>
           No account?

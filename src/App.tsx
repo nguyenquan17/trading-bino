@@ -1,12 +1,13 @@
 import { SettingsProvider } from "./contexts/SettingsContext";
-import { AppProvider, Web3Provider } from "./contexts";
+import { AppProvider } from "./contexts";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 import { MetaMaskInpageProvider } from "@metamask/providers";
 import { theme } from "./lib/Theme";
 import Routes from "./Routes";
 import "./assets/css/App.scss";
-
+import { DialogProvider } from "./contexts/GlobalDialog";
+import { SnackbarProvider } from "notistack";
 declare global {
   interface Window {
     ethereum?: MetaMaskInpageProvider;
@@ -15,17 +16,21 @@ declare global {
 
 export default function App() {
   return (
-    <div className="App">
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Web3Provider>
+    <SnackbarProvider maxSnack={3}>
+      <div className="App">
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+
           <AppProvider>
-            <SettingsProvider>
-              <Routes />
-            </SettingsProvider>
+            <DialogProvider>
+              <SettingsProvider>
+                <Routes />
+              </SettingsProvider>
+            </DialogProvider>
           </AppProvider>
-        </Web3Provider>
-      </ThemeProvider>
-    </div>
+        </ThemeProvider>
+      </div>
+    </SnackbarProvider>
+
   );
 }

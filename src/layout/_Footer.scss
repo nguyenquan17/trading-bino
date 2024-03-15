@@ -2,14 +2,17 @@
   background: #2a2b30;
   color: #fff;
   width: 100%;
+
   .wrap {
     margin: 0 auto;
     max-width: 1200px;
     padding: 72px 40px 76px;
     display: flex;
     gap: 10px;
+
     .basic-info {
       width: 40%;
+
       .head-title {
         font-weight: bold;
         margin: 0;
@@ -18,20 +21,24 @@
       }
     }
   }
+
   a {
     color: #b8b8b8;
     text-decoration: none;
   }
+
   .desc {
     margin-bottom: 40px;
     display: flex;
     justify-content: space-between;
     width: 570px;
     margin-left: auto;
+
     .item {
       display: flex;
       flex-direction: column;
       line-height: 32px;
+
       .upper {
         margin-top: 0;
         text-transform: uppercase;
@@ -39,6 +46,7 @@
       }
     }
   }
+
   .social {
     display: flex;
     gap: 20px;
@@ -48,6 +56,7 @@
 
     overflow-x: auto;
     overflow-y: hidden;
+
     a {
       padding: 5px;
       align-items: center;
@@ -66,16 +75,16 @@
 
 @media only screen and (max-width: 820px) {
   .footer {
-    .social {
-      justify-content: start;
-    }
+
     .wrap {
       flex-flow: column;
       padding: 50px 40px 50px;
+
       .basic-info {
         width: 100%;
         order: 2;
       }
+
       .desc {
         flex-flow: column;
         gap: 20px;

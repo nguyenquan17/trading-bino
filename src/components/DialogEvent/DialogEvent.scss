@@ -1,0 +1,36 @@
+.MuiDialog-root.dialog-event{
+  .MuiDialog-paper{
+    background-color: #2a2b30 !important;
+    border-radius: 12px !important;
+
+  }
+}
+@media screen and (max-width: 768px) {
+  .MuiDialog-root.dialog-event{
+    .MuiDialog-paper{
+      .dialog-title{
+        padding: 24px 0;
+        font-size: 24px;
+        line-height: 28px;
+      }
+      .dialog-content{
+        padding: 16px;
+        .dialog-content-text{
+          font-size: 16px;
+
+        }
+        .dialog-content-box{
+          &__item{
+            padding: 16px;
+            .MuiTypography-h5{
+              font-size: 1rem;
+            }
+            .MuiTypography-body1{
+              font-size: 0.875rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}

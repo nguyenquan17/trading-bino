@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Menu, { MenuProps } from "@mui/material/Menu";
 import {
   Table,
@@ -16,6 +16,8 @@ import { fetchTokenList } from "../../apis/AppApi";
 import { useApp } from "../../contexts/AppContext";
 import { TokenSymbol } from "../../interfaces/TokenSymbol";
 import "./TokenSelect.scss";
+import SocketGlobal from "../../lib/SocketGlobal";
+import { I24hChange } from "../../apis/interfaces/SocketInterfaces";
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -69,8 +71,8 @@ const StyledMenu = styled((props: MenuProps) => (
 export default function TokenSelect() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const [tokens, setTokens] = React.useState([]);
-  const { tokenCurrent, updateTokenCurrent } = useApp();
+
+  const { tokenCurrent, updateTokenCurrent, tokenList } = useApp();
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -78,13 +80,13 @@ export default function TokenSelect() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const socket = SocketGlobal.getInstance(tokenCurrent!.symbol);
+  const [oneDayChange, setOneDayChange] = useState<Record<string, I24hChange>>();
 
   useEffect(() => {
-    fetchTokenList()
-      .then((res) => {
-        setTokens(res.data);
-      })
-      .catch();
+    socket?.on("channel:24h_change", (data) => {
+      setOneDayChange(data);
+    });
   }, []);
 
   return (
@@ -97,7 +99,7 @@ export default function TokenSelect() {
         onClick={handleClick}
         endIcon={<KeyboardArrowDownIcon />}
       >
-        {tokenCurrent.name} {tokenCurrent.profit}%
+        {tokenCurrent?.name} {tokenCurrent?.profit}%
       </Button>
       <StyledMenu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <div style={{ height: 400, width: "100%" }}>
@@ -105,16 +107,17 @@ export default function TokenSelect() {
             <TableHead>
               <TableRow>
                 <TableCell>Asset</TableCell>
+                <TableCell>24h Changing</TableCell>
                 <TableCell>Profit</TableCell>
                 <TableCell>For VIP</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {tokens.map((token: TokenSymbol) => (
+              {tokenList.map((token: TokenSymbol) => (
                 <TableRow
                   key={token.symbol}
                   className={
-                    token.symbol == tokenCurrent.symbol ? "active" : ""
+                    token.symbol == tokenCurrent?.symbol ? "token-item active" : "token-item"
                   }
                   onClick={() => {
                     updateTokenCurrent?.(token);
@@ -122,8 +125,9 @@ export default function TokenSelect() {
                   }}
                 >
                   <TableCell>{token.name}</TableCell>
+                  <TableCell>{oneDayChange && <span className={oneDayChange[token.symbol].change < 0 ? 'down' : 'up'}>{(oneDayChange[token.symbol]!.change < 0 ? '-' : '+') + oneDayChange[token.symbol]!.changePercent}</span>}</TableCell>
                   <TableCell>{token.profit}%</TableCell>
-                  <TableCell>{token.profit}%</TableCell>
+                  <TableCell>{token.vip_profit}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -133,3 +137,4 @@ export default function TokenSelect() {
     </Box>
   );
 }
+

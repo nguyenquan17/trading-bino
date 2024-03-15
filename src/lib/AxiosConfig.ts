@@ -3,7 +3,14 @@ import LocalStorage from './LocalStorage';
 
 axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
-axios.defaults.withCredentials = true;
+
+export const updateAxiosHeaders = () => {
+  axios.defaults.headers.common['uid'] = LocalStorage.getUid();
+  axios.defaults.headers.common['access_token'] = LocalStorage.getAccessToken();
+}
+
+updateAxiosHeaders();
+// axios.defaults.withCredentials = true;
 
 axios.interceptors.response.use(
   (response: AxiosResponse) => response,
@@ -15,9 +22,11 @@ axios.interceptors.response.use(
           return Promise.reject(err);
         });
       console.log(error.config);
+      LocalStorage.removeAccessToken();
+      axios.defaults.headers.common['access_token'] = ''
       return axios(error.config);
     } else {
-      LocalStorage.remove('uid');
+      // LocalStorage.remove('access_token');
       return Promise.reject(error);
     }
   })

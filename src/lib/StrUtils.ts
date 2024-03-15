@@ -1,4 +1,5 @@
 import { getRandomInRange } from "./NumberUtils";
+import { generateRandomString } from "./Utils";
 
 export function slugify(str: string) {
   return String(str)
@@ -12,10 +13,10 @@ export function slugify(str: string) {
 }
 
 export function genUID(): string {
-  return getRandomInRange(1000, 9999) + "" + new Date().getTime();
+  return generateRandomString();//getRandomInRange(1000, 9999) + "" + new Date().getTime();
 }
 
-export function tryParse(str: any) {
+export function tryParseJSON(str: any) {
   try {
     return JSON.parse(str);
   } catch (error) {

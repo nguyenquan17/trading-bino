@@ -1,19 +1,25 @@
-import { Account } from "../interfaces/User";
+// import { Account } from "../interfaces/User";
 
-export const STORE_AUTH_TOKEN = "authToken";
+import { TokenSymbol } from "../interfaces/TokenSymbol";
+
+export const STORE_AUTH_TOKEN = "access_token";
 export const STORE_UID = "uid";
 export const STORE_PAIR = "symbol";
-export const IGNORE_BID_SECONDS = 30;
 export const STORE_TOKEN = "token";
-export const TOKEN_DEFAULT = {
-  base: "BNB",
-  name: "BNB/USDT",
-  profit: 80,
-  quote: "USDT",
-  symbol: "BNBUSDT",
-};
-export const ACCOUNT_DEMO: Account = {
-  email: 'Demo'
+//trong 30 giay cuoi khong duoc bid
+export const IGNORE_BID_SECONDS = 30;
+
+export const STORE_ACCOUNT_TYPE = "account_type";
+export type ACCOUNT_TYPE = 'DEMO' | 'MAIN' | 'BONUS' | 'COMMISSION';
+export const ACCOUNT_TYPE_DEMO: ACCOUNT_TYPE = 'DEMO';
+export const ACCOUNT_TYPE_MAIN: ACCOUNT_TYPE = 'MAIN';
+export const ACCOUNT_TYPE_BONUS: ACCOUNT_TYPE = 'BONUS';
+export const ACCOUNT_TYPE_COMMISSION: ACCOUNT_TYPE = 'COMMISSION';
+export const ACCOUNT_TYPE_DEFAULT: ACCOUNT_TYPE = ACCOUNT_TYPE_DEMO;
+export type AccountBalance = {
+  type: ACCOUNT_TYPE;
+  balance: number;
+  id: number
 }
 
 interface Map {

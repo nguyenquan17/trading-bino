@@ -1,5 +1,9 @@
 .token-select {
   font-size: 14px;
+
+  .token-item {
+    cursor: pointer
+  }
 }
 
 .token-select-button {

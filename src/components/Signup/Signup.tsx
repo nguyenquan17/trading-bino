@@ -8,6 +8,8 @@ import BaseButton from '../../base/BaseButton/BaseButton';
 import { useApp } from '../../contexts/AppContext';
 import { useSettings } from '../../contexts/SettingsContext';
 import './Signup.scss';
+import SigninWithSocial from "../SigninWithSocial/SigninWithSocial";
+
 
 const valuesDefault = {
   email: '',
@@ -69,7 +71,7 @@ function Signup({ onSwitch, isDark }: SignupProps) {
         const data = await register(values);
         authenticate(data?.uid);
         closeAuthDialog();
-        navigate('/trading');
+        navigate('/auth?redirect=/trading#signin');
       } catch (error: any) {
         setErrors({ ...errors, email: error.message })
       }
@@ -111,6 +113,20 @@ function Signup({ onSwitch, isDark }: SignupProps) {
         <Typography mb={2} className="text-danger">Please accept terms and conditions</Typography>
       )}
       <BaseButton onClick={handleSubmit}>Create account</BaseButton>
+      <Box
+        width='100%'
+        sx={{
+          borderRadius: 2,
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+        className="wrapper-btn-social"
+      >
+        <div style={{ width: '100%', marginRight: '16px' }}>
+          <SigninWithSocial typeLogin="GOOGLE" tab="SIGN_UP" />
+        </div>
+        <SigninWithSocial typeLogin="FACEBOOK" tab="SIGN_UP" />
+      </Box>
       <Box display="flex" alignItems="center" justifyContent="center" my={2}>
         <Typography color="white" mr={2}>Have an account?</Typography>
         <Button
@@ -121,6 +137,7 @@ function Signup({ onSwitch, isDark }: SignupProps) {
           onClick={onSwitch}
         >Sign In</Button>
       </Box>
+
     </Box>
   )
 }

@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Button, Dialog, Typography } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import { Contract, parseUnits } from "ethers";
 import { formatNumber, getNetworkName, shortAddress } from "../../lib/Helpers";
-import { DEFAULT_ADDRESS, DEFAULT_CHAIN_ID } from "../../lib/Const";
+import { ACCOUNT_TYPE_MAIN, DEFAULT_ADDRESS, DEFAULT_CHAIN_ID } from "../../lib/Const";
 import { useApp, useWeb3 } from "../../contexts";
 import Loading from "../../assets/icons/loading.svg";
 import { deposit } from "../../apis/AppApi";
@@ -20,11 +20,25 @@ export default function Deposit() {
     walletBalance,
     ethersProvider,
   } = useWeb3();
-  const { balance, user } = useApp();
+  const { mainAccount } = useApp();
   const [{ amount, error, status }, setFormValue] = useState<any>({});
-
-  let isInvalid = loading ? false : providerChainId != DEFAULT_CHAIN_ID;
-
+  const balance = mainAccount?.balance;
+  let isInvalid = loading ? false : false;
+  const supportChainIds: Array<number | undefined> = [1, 56];
+  useEffect(() => {
+    switchChain();
+  });
+  const switchChain = async () => {
+    // alert();
+    if (!supportChainIds.includes(providerChainId) && window.ethereum) {
+      // alert('');
+      const chainId = supportChainIds[0];
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: `0x${chainId!.toString(16)}` }],
+      });
+    }
+  }
   const handleChange = (e: any) => {
     let { value } = e.target;
     if (value.match(/\./g)?.length > 1) return;
@@ -51,6 +65,8 @@ export default function Deposit() {
     const abi = ["function transfer(address to, uint amount) returns (bool)"];
     const contract = new Contract(DEFAULT_ADDRESS!, abi, signer);
     try {
+
+      alert(parseUnits(amount, 18));
       setFormValue({ amount, status: "confirm" });
       const tx = await contract.transfer(
         process.env.REACT_APP_RECEIVER,
@@ -81,7 +97,7 @@ export default function Deposit() {
 
   function addBalance(tx: string) {
     deposit({
-      user_id: user.id,
+      user_id: mainAccount?.id,
       address_wallet: account,
       transaction_hex: tx,
       network: providerChainId,
@@ -91,6 +107,7 @@ export default function Deposit() {
 
   return (
     <div className="deposit-page">
+
       <Typography variant="h2" component="h2" fontSize={24}>
         Deposit
       </Typography>
@@ -98,7 +115,7 @@ export default function Deposit() {
         <>
           {isInvalid ? (
             <>
-              <Box color="red">Unsuported chain</Box>
+              <Box color="red">Unsupported chain</Box>
               <Typography>
                 Please switch to {getNetworkName(providerChainId!)}
               </Typography>
@@ -151,7 +168,7 @@ export default function Deposit() {
             className="btn submit"
             variant="contained"
             color="primary"
-            onClick={connectWeb3}
+            onClick={() => { connectWeb3(); }}
             fullWidth
           >
             Connect
@@ -171,8 +188,8 @@ export default function Deposit() {
             {status === "confirm"
               ? "Confirm transfer"
               : status === "transfering"
-              ? "Transfering"
-              : "Transaction receipt"}
+                ? "Transfering"
+                : "Transaction receipt"}
           </Typography>
           {status === "confirm" && (
             <>
